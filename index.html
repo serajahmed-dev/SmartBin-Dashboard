@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartBin Dashboard | Final Build</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0fdf4, #f8fafc, #ecfdf5);
+      min-height: 100vh;
+      color: #1a1a1a;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1rem;
+      position: sticky; top: 0; z-index: 10;
+    }
+
+    .header-content { max-width: 1200px; margin: auto; display: flex; align-items: center; gap: 1rem; }
+    .logo { width: 48px; height: 48px; background: rgba(34,197,94,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+    .container { max-width: 1200px; margin: auto; padding: 2rem 1rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #fff; border-radius: 16px; border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .card-header { padding: 1.25rem; font-weight: 600; border-bottom: 1px solid #e5e7eb; background: #fcfcfc; }
+    .card-content { padding: 1.5rem; flex-grow: 1; }
+
+    /* Circular Progress */
+    .circle-wrapper { position: relative; width: 200px; height: 200px; margin: 1rem auto; }
+    svg { transform: rotate(-90deg); }
+    .bg-circle { fill: none; stroke: #f3f4f6; stroke-width: 12; }
+    .progress-circle { 
+        fill: none; stroke-width: 12; stroke-linecap: round; 
+        stroke-dasharray: 553; stroke-dashoffset: 553; 
+        transition: stroke-dashoffset 1s ease, stroke 0.4s ease; 
+    }
+
+    .center-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .value { font-size: 3rem; font-weight: 700; transition: color 0.4s ease; }
+    .status { font-size: 0.9rem; color: #6b7280; font-weight: 500; }
+
+    .bar { height: 12px; background: #f3f4f6; border-radius: 999px; overflow: hidden; margin-top: 1.5rem; }
+    .bar-fill { height: 100%; width: 0%; transition: width 1s ease, background 0.4s ease; }
+
+    /* Color Classes */
+    .stroke-green { stroke: #22c55e !important; }
+    .stroke-yellow { stroke: #eab308 !important; }
+    .stroke-red { stroke: #ef4444 !important; }
+
+    .text-green { color: #22c55e !important; }
+    .text-yellow { color: #eab308 !important; }
+    .text-red { color: #ef4444 !important; }
+
+    .bg-green { background: #22c55e !important; }
+    .bg-yellow { background: #eab308 !important; }
+    .bg-red { background: #ef4444 !important; }
+
+    /* Map - Fixed with better background */
+    .map-container { width: 100%; height: 300px; background: #e2e8f0; position: relative; }
+    .map-container iframe { width: 100%; height: 100%; border: 0; }
+
+    .chart-card { grid-column: 1 / -1; }
+    .chart-box { height: 320px; width: 100%; }
+
+    footer { text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem; }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-content">
+    <div class="logo">🗑️</div>
+    <div>
+      <h2 style="font-size: 1.25rem;">SmartBin Innovators</h2>
+      <p style="font-size: 0.875rem; color: #64748b;">Live Analytics Dashboard</p>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">🗑 Current Fill Level</div>
+      <div class="card-content">
+        <div class="circle-wrapper">
+          <svg width="200" height="200">
+            <circle class="bg-circle" cx="100" cy="100" r="88"></circle>
+            <circle id="progressCircle" class="progress-circle stroke-green" cx="100" cy="100" r="88"></circle>
+          </svg>
+          <div class="center-text">
+            <div id="fillValue" class="value text-green">--%</div>
+            <div id="fillStatus" class="status">Connecting...</div>
+          </div>
+        </div>
+        <div class="bar">
+          <div id="progressBar" class="bar-fill bg-green"></div>
+        </div>
+        <p id="lastUpdated" style="text-align:center; margin-top:1.5rem; color:#9ca3af; font-size: 0.8rem;">Syncing...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">📍 Bin 1 Location</div>
+      <div class="map-container">
+        <iframe 
+          src="https://maps.google.com/maps?q=12.898159877924522,77.49643716596938&z=17&output=embed" 
+          allowfullscreen="" 
+          loading="lazy">
+        </iframe>
+      </div>
+      <div class="card-content">
+        <strong>SJB Ganesha Circle Bin</strong>
+        <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">
+          Coordinates: 12.8981, 77.4964
+        </p>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="card-header">📊 Weekly Average Analysis</div>
+      <div class="card-content">
+        <div class="chart-box">
+          <canvas id="weeklyBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2025 SmartBin Innovators</footer>
+
+<script>
+  const CHANNEL_ID = "3209835";
+  const FIELD_URL = `https://api.thingspeak.com/channels/${CHANNEL_ID}/fields/1.json?results=200`;
+  const LAST_URL = `https://api.thingspeak.com/channels/${CHANNEL_ID}/fields/1/last.json`;
+
+  const ctx = document.getElementById('weeklyBarChart').getContext('2d');
+  const weeklyBarChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      datasets: [{
+        label: 'Avg Fill %',
+        data: [0, 0, 0, 0, 0, 0, 0],
+        backgroundColor: [], 
+        borderColor: [],
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  function updateUI(level) {
+    const circle = document.getElementById("progressCircle");
+    const valEl = document.getElementById("fillValue");
+    const bar = document.getElementById("progressBar");
+    const status = document.getElementById("fillStatus");
+
+    let color = "green";
+    let statusText = "Normal";
+
+    if (level >= 80) { color = "red"; statusText = "Nearly Full"; }
+    else if (level >= 50) { color = "yellow"; statusText = "Filling Up"; }
+
+    circle.classList.remove('stroke-green', 'stroke-yellow', 'stroke-red');
+    circle.classList.add(`stroke-${color}`);
+    circle.style.strokeDashoffset = 553 - (level / 100) * 553;
+
+    valEl.classList.remove('text-green', 'text-yellow', 'text-red');
+    valEl.classList.add(`text-${color}`);
+    valEl.textContent = `${Math.round(level)}%`;
+
+    bar.classList.remove('bg-green', 'bg-yellow', 'bg-red');
+    bar.classList.add(`bg-${color}`);
+    bar.style.width = `${level}%`;
+
+    status.textContent = statusText;
+    document.getElementById("lastUpdated").textContent = `Live: ${new Date().toLocaleTimeString()}`;
+  }
+
+  async function fetchWeeklyData() {
+    try {
+      const res = await fetch(FIELD_URL);
+      const data = await res.json();
+      const daySums = [0,0,0,0,0,0,0], dayCounts = [0,0,0,0,0,0,0];
+
+      data.feeds.forEach(f => {
+        const val = parseFloat(f.field1);
+        if(!isNaN(val)) {
+          const d = new Date(f.created_at).getDay();
+          daySums[d] += val; dayCounts[d]++;
+        }
+      });
+
+      const averages = daySums.map((s, i) => dayCounts[i] > 0 ? (s / dayCounts[i]) : 0);
+      
+      const colors = averages.map(avg => {
+        if (avg >= 80) return "#ef444499";
+        if (avg >= 50) return "#eab30899";
+        return "#22c55e99";
+      });
+
+      const borderColors = averages.map(avg => {
+        if (avg >= 80) return "#ef4444";
+        if (avg >= 50) return "#eab308";
+        return "#16a34a";
+      });
+
+      weeklyBarChart.data.datasets[0].data = averages;
+      weeklyBarChart.data.datasets[0].backgroundColor = colors;
+      weeklyBarChart.data.datasets[0].borderColor = borderColors;
+      weeklyBarChart.update();
+    } catch (e) { console.error(e); }
+  }
+
+  async function fetchCurrent() {
+    try {
+      const res = await fetch(LAST_URL);
+      const data = await res.json();
+      updateUI(parseFloat(data.field1) || 0);
+    } catch (e) {}
+  }
+
+  fetchCurrent();
+  fetchWeeklyData();
+  setInterval(fetchCurrent, 15000);
+  setInterval(fetchWeeklyData, 60000);
+</script>
+</body>
+</html>
