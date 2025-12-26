@@ -34,5 +34,6 @@ We developed a smart monitoring system that tracks bin capacity in real-time. Th
 3.  **Firmware:** Flash the provided Arduino code to your microcontroller.
 4.  **Launch:** Open `index.html` (hosted on GitHub Pages) to view the live dashboard.
 
----
+---<img width="834" height="734" alt="Screenshot 2025-12-26 213246" src="https://github.com/user-attachments/assets/baa7aaff-df95-4213-b664-eda1633a01ae" />
+
 © 2025 SmartBin Innovators | Hackathon Project
