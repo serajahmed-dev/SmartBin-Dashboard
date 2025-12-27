@@ -30,7 +30,7 @@ We developed a smart monitoring system that tracks bin capacity in real-time. Th
 
 ## ⚙️ Setup
 1.  **Hardware:** Connect the HC-SR04 sensor to the ESP8266 (Trig to D5, Echo to D6).
-2.  **Firebase:** Update the `firebaseConfig` in `index.html` with your project credentials.
+2.  **BACKEND:** Update the `ThingSpeakConfig` in `index.html` with your project credentials.
 3.  **Firmware:** Flash the provided Arduino code to your microcontroller.
 4.  **Launch:** Open `index.html` (hosted on GitHub Pages) to view the live dashboard.
 
